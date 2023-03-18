@@ -1,1 +1,1 @@
-# test
+# This project uses Harmonised Index of Consumer Prices (HICP) that is used to measure consumer price inflation from Eurostats and build the monitoring dashboard using Dash and deploys the dashboard on databricks. 
