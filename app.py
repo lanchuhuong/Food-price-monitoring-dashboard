@@ -9,9 +9,7 @@ from dash.dependencies import Input, Output
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 
 # import the data
-# df = pd.read_csv('https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false')
-# df.to_csv('data.csv', index=False)
-df = pd.read_csv("data.csv")
+df = pd.read_csv('https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false')
 
 df = df[(df["indx"] == "HICP") & (df["unit"] == "PCH_M12")]
 df = df.rename(
