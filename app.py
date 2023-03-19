@@ -9,11 +9,18 @@ from dash.dependencies import Input, Output
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 
 # import the data
+<<<<<<< HEAD
 # df = pd.read_csv(
 #     "https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false"
 # )
 # df.to_csv("data.csv", index=False)
 df = pd.read_csv("data.csv")
+=======
+df = pd.read_csv(
+    "https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false"
+)
+
+>>>>>>> e9dec10153d4e2a46ea22b9d641ef0067b124417
 df = df[(df["indx"] == "HICP") & (df["unit"] == "PCH_M12")]
 df = df.rename(
     {"TIME_PERIOD": "period", "OBS_VALUE": "Percentage change m/m-12"}, axis=1
@@ -75,7 +82,6 @@ df = df[
 df["pct_diff"] = df.groupby(["geo", "coicop"], as_index=True)[
     "Percentage change m/m-12"
 ].pct_change(periods=12)
-# df = df[df["Percentage change m/m-12"] > 0].sort_values(by=["period", "Country"])
 
 period = sorted(df["period"].unique())
 mask = df["period"] == period[-1]
@@ -104,14 +110,11 @@ months = {
 }
 
 marks_months = {i: month for i, month in enumerate(months.values())}
-
-
 period = list(df["period"].unique())
 marks = {idx: period_str for idx, period_str in enumerate(period)}
 
 
 ## Layout
-
 
 title = html.H2(
     "Food price monitoring tool - the harmonised index of consumer prices (HICP)",
@@ -166,8 +169,6 @@ html_dropdown_foodcategory = (
 
 countries = sorted(df["Country"].dropna().unique())
 
-country_option_columns = [{"value": x, "label": x} for x in countries]
-
 
 html_world_map = html.Div(
     dcc.Graph(id="choropleth"),
@@ -196,7 +197,11 @@ container = dbc.Container(
                                     ),
                                     html.P(
                                         id="card_text_1",
+<<<<<<< HEAD
                                         # children=["Sample text."],
+=======
+                                        # children=["text."],
+>>>>>>> e9dec10153d4e2a46ea22b9d641ef0067b124417
                                     ),
                                 ]
                             )
@@ -219,7 +224,11 @@ container = dbc.Container(
                                     ),
                                     html.P(
                                         id="card_text_2",
+<<<<<<< HEAD
                                         # children=["Sample text."],
+=======
+                                        # children=["text."],
+>>>>>>> e9dec10153d4e2a46ea22b9d641ef0067b124417
                                     ),
                                 ]
                             )
@@ -241,9 +250,48 @@ container = dbc.Container(
         ),
         dbc.Row(
             [
+                dbc.Col(html_slider, width=4, style={"margin-bottom": "20px"}),
+                dbc.Col(
+                    html_dropdown_country, width=4, style={"margin-bottom": "20px"}
+                ),
+                dbc.Col(html_line_graph, width=6, style={"margin-bottom": "20px"}),
+            ]
+        ),
+        dbc.Row(
+            [
                 dbc.Col(html_slider, width=6, style={"margin-bottom": "20px"}),
                 dbc.Col(
-                    html_dropdown_country, width=6, style={"margin-bottom": "20px"}
+                    html_dropdown_foodcategory, width=4, style={"margin-bottom": "20px"}
+                ),
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    dbc.Card(
+                        [
+                            dbc.CardBody(
+                                [
+                                    html.H4(
+                                        id="card_title_3",
+                                        children=["About this dataset "],
+                                        className="card-title",
+                                    ),
+                                    html.P(
+                                        id="card_text_3",
+                                        children=[
+                                            html.A(
+                                                "Link to more information",
+                                                href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
+                                            )
+                                        ],
+                                    ),
+                                ]
+                            )
+                        ]
+                    ),
+                    md=6,
+                    style={"margin-bottom": "20px"},
                 ),
                 # dbc.Col(
                 #     html_dropdown_foodcategory, width=4, style={"margin-bottom": "20px"}
@@ -266,16 +314,12 @@ layout = html.Div(
 
 
 # Run Server
-# =
 dash_app = Dash(__name__, external_stylesheets=external_stylesheets)
 dash_app.layout = layout
-
 app = dash_app.server
 
 
-#
 # callbacks
-#
 @dash_app.callback(
     Output(component_id="slider_label", component_property="children"),
     Input(component_id="slider_year", component_property="drag_value"),
@@ -301,11 +345,8 @@ def update_world_map(date, foodcategory):
     index = int(np.round(12 * (date - year)))
     month = list(months.keys())[index]
     period = f"{year}-{month}"
-    # foodcategories = list(df['label'].unique())
 
     mask = (period == df["period"]) & (foodcategory == df["label"])
-    # print(sum(period == df["period"]), sum(foodcategory == df['label']))
-    # print(foodcategory)
     fig_world_map = px.choropleth(
         df[mask].dropna(subset=["Percentage change m/m-12"]),
         locations="alpha_3",
@@ -329,17 +370,10 @@ def update_world_map(date, foodcategory):
 
 @dash_app.callback(
     # Set the input and output of the callback to link the dropdown to the graph
-    # Output(component_id="choropleth", component_property="figure"),
     Output(component_id="line", component_property="figure"),
     Input(component_id="dropdown_country", component_property="value"),
-    Input(component_id="dropdown_food_category", component_property="value")
-    # Input(component_id="checklist_country_1", component_property="value"),
-    # Input(component_id="checklist_country_2", component_property="value"),
-    # Input(component_id="checklist_country_3", component_property="value"),
-    # Input(component_id="checklist_country_4", component_property="value"),
+    Input(component_id="dropdown_food_category", component_property="value"),
 )
-# def update_line_plot(countries_1, countries_2, countries_3, countries_4):
-# countries = countries_1 + countries_2 + countries_3 + countries_4
 def update_line_plot(country, food_label):
     if country:
         mask = (df["Country"] == country) & (df["label"] == food_label)
@@ -376,5 +410,4 @@ def update_line_plot(country, food_label):
 
 
 if __name__ == "__main__":
-    # app.run_server(mode='inline', height=400, debug = False)
     dash_app.run_server(debug=False)
