@@ -9,8 +9,11 @@ from dash.dependencies import Input, Output
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 
 # import the data
-df = pd.read_csv('https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false')
-
+# df = pd.read_csv(
+#     "https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false"
+# )
+# df.to_csv("data.csv", index=False)
+df = pd.read_csv("data.csv")
 df = df[(df["indx"] == "HICP") & (df["unit"] == "PCH_M12")]
 df = df.rename(
     {"TIME_PERIOD": "period", "OBS_VALUE": "Percentage change m/m-12"}, axis=1
@@ -118,59 +121,6 @@ foodcategory = sorted(df["label"].dropna().unique())
 
 foodcategory_option_columns = [{"value": x, "label": x} for x in foodcategory]
 
-# html_checkbox_foodcategory = html.Div(
-# [
-#         dbc.Label("Food Category"),
-#         html.Div(
-#             dbc.Row(
-#                 [
-#                     dbc.Col(
-#                         dcc.RadioItems(
-#                             id="checklist_foodcategory_1",
-#                             options=foodcategory_option_columns[:7],
-#                             labelStyle={"display": "block"},
-#                             value="Food",
-#                         ),
-#                         width=3,
-#                     ),
-#                     dbc.Col(
-#                         html.Div(
-#                         dcc.RadioItems(
-#                                 id="checklist_foodcategory_2",
-#                                 options=foodcategory_option_columns[7:14],
-#                                 labelStyle={"display": "block"},
-#                                 # value=["France"],
-#                             ),
-#                         ),
-#                         width=3,
-#                     ),
-#                     dbc.Col(
-#                         html.Div(
-#                         dcc.RadioItems(
-#                                 id="checklist_foodcategory_3",
-#                                 options=foodcategory_option_columns[14:21],
-#                                 labelStyle={"display": "block"},
-#                                 # value=["Netherlands"],
-#                             ),
-#                         ),
-#                         width=3,
-#                     ),
-#                     dbc.Col(
-#                         html.Div(
-#                         dcc.RadioItems(
-#                                 id="checklist_foodcategory_4",
-#                                 options=foodcategory_option_columns[21:],
-#                                 labelStyle={"display": "block"},
-#                                 # value=['Poland'],
-#                             ),
-#                         ),
-#                         width=3,
-#                     ),
-#                 ]
-#             )
-#         ),
-#     ]
-# )
 
 html_slider = html.Div(
     [
@@ -230,75 +180,74 @@ html_line_graph = html.Div(
 
 container = dbc.Container(
     [
-     dbc.Row(
-        [
-        dbc.Col(
-            dbc.Card(
-                [
-                    dbc.CardBody(
-                        [
-                            html.H4(
-                                id="card_title_1",
-                                children=["HICP inflation rate - Overall index "],
-                                className="card-title",
-                            ),
-                            html.P(
-                                id="card_text_1",
-                                # children=["Sample text."],
-                            ),
-                        ]
-                    )
-                ]
-            ),
-            md=6, style={"margin-bottom": "20px"}
-        ),
-                     dbc.Col(
-            dbc.Card(
-                [
-                    dbc.CardBody(
-                        [
-                            html.H4(
-                                id="card_title_2",
-                                children=["HICP inflation rate - Overall index "],
-                                className="card-title",
-                            ),
-                            html.P(
-                                id="card_text_2",
-                                # children=["Sample text."],
-                            ),
-                        ]
-                    )
-                ]
-            ),
-            md=6, style={"margin-bottom": "20px"})
-    ]
-),
         dbc.Row(
             [
                 dbc.Col(
-                    html_world_map,
-                    width=6,
+                    dbc.Card(
+                        [
+                            dbc.CardBody(
+                                [
+                                    html.H4(
+                                        id="card_title_1",
+                                        children=[
+                                            "HICP inflation rate - Overall index "
+                                        ],
+                                        className="card-title",
+                                    ),
+                                    html.P(
+                                        id="card_text_1",
+                                        # children=["Sample text."],
+                                    ),
+                                ]
+                            )
+                        ]
+                    ),
+                    md=6,
+                    style={"margin-bottom": "20px"},
                 ),
                 dbc.Col(
-                    html_line_graph,
-                    width=6, style={"margin-bottom": "20px"}
+                    dbc.Card(
+                        [
+                            dbc.CardBody(
+                                [
+                                    html.H4(
+                                        id="card_title_2",
+                                        children=[
+                                            "HICP inflation rate - Overall index "
+                                        ],
+                                        className="card-title",
+                                    ),
+                                    html.P(
+                                        id="card_text_2",
+                                        # children=["Sample text."],
+                                    ),
+                                ]
+                            )
+                        ]
+                    ),
+                    md=6,
+                    style={"margin-bottom": "20px"},
                 ),
             ]
         ),
         dbc.Row(
             [
                 dbc.Col(
-                    html_slider,
-                    width=4, style={"margin-bottom": "20px"}
+                    html_world_map,
+                    width=6,
                 ),
+                dbc.Col(html_line_graph, width=6, style={"margin-bottom": "20px"}),
+            ]
+        ),
+        dbc.Row(
+            [
+                dbc.Col(html_slider, width=6, style={"margin-bottom": "20px"}),
                 dbc.Col(
-                    html_dropdown_country,
-                    width=4,style={"margin-bottom": "20px"}
+                    html_dropdown_country, width=6, style={"margin-bottom": "20px"}
                 ),
-                dbc.Col(
-                    html_dropdown_foodcategory,
-                    width=4,style={"margin-bottom": "20px"}
-                ),
+                # dbc.Col(
+                #     html_dropdown_foodcategory, width=4, style={"margin-bottom": "20px"}
+                # ),
             ]
         ),
     ]
@@ -332,12 +281,13 @@ app = dash_app.server
     Input(component_id="slider_year", component_property="drag_value"),
 )
 def update_slider_label(period):
-    # convert e.g. 2020.25 to 'Mar 2020'
-    year = int(period)
-    index = int(np.round(12 * (period - year)))
-    month = list(months.values())[index]
+    if period:
+        # convert e.g. 2020.25 to 'Mar 2020'
+        year = int(period)
+        index = int(np.round(12 * (period - year)))
+        month = list(months.values())[index]
 
-    return f"{month} {year}"
+        return f"{month} {year}"
 
 
 @dash_app.callback(
@@ -411,12 +361,13 @@ def update_line_plot(country, food_label):
     fig_line.update_layout(
         # title="HICP inflation rate",
         xaxis_title="Period",
-         legend=dict(font=dict(
-            family="Arial",
-            size=10,
-            # color="black"
-        )
-    ),
+        legend=dict(
+            font=dict(
+                family="Arial",
+                size=10,
+                # color="black"
+            )
+        ),
         margin=dict(l=10, r=0, t=20, b=0),
         paper_bgcolor="#d8e1ee",
     )
