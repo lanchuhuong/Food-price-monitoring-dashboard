@@ -153,6 +153,35 @@ sidebar = html.Div(
                     options=[{"value": x, "label": x} for x in df["label"].unique()],
                     value="Bread and cereals",
                 ),
+                html.Br(),
+                dbc.Label("About this data set"),
+                dbc.Card(
+                    [
+                        dbc.CardBody(
+                            [
+                                html.H4(
+                                    id="card_title_3",
+                                    children=[
+                                        html.A(
+                                            "Link to more information",
+                                            href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
+                                        )
+                                    ],
+                                    className="card-title",
+                                ),
+                                #     html.P(
+                                #         id="card_text_3",
+                                #         children=[
+                                #             html.A(
+                                #                 "Link to more information",
+                                #                 href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
+                                #             )
+                                #         ],
+                                #     ),
+                            ]
+                        )
+                    ]
+                ),
             ],
             vertical=True,
             pills=True,
@@ -337,7 +366,7 @@ container = html.Div(
             dbc.Col(sidebar, width=3),
             dbc.Col(
                 [
-                    html.Center(html.H1("Welcome to my inflation dashboard app")),
+                    html.Center(html.H1("Inflation dashboard app (HICP index)")),
                     dbc.Row(
                         [
                             dbc.Col(
@@ -351,9 +380,9 @@ container = html.Div(
                                             dbc.Col(
                                                 html_line_graph,
                                                 width=6,
-                                                # style={"margin-bottom": "20px"},
                                             ),
-                                        ]
+                                        ],
+                                        style={"margin-right": "20px"},
                                     ),
                                 ]
                             ),
@@ -364,15 +393,7 @@ container = html.Div(
         ]
     )
 )
-layout = html.Div(
-    [container],
-    # style={
-    #     "color": "DarkBlue",
-    #     "font-weight": "bold",
-    #     "marginBottom": 100,
-    #     "marginTop": 50,
-    # },
-)
+layout = html.Div([container])
 
 
 # Run Server
@@ -426,7 +447,12 @@ def update_world_map(date, foodcategory):
     #     margin=dict(l=10, r=0, t=20, b=0),
     #     # paper_bgcolor="#d8e1ee",
     # )
-
+    fig_world_map.update_layout(
+        autosize=False,
+        margin=dict(l=0, r=0, b=0, t=0, pad=4, autoexpand=True),
+        # width=800,
+        #     height=400,
+    )
     return fig_world_map
 
 
