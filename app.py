@@ -165,19 +165,11 @@ sidebar = html.Div(
                                         html.A(
                                             "Link to more information",
                                             href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
+                                            style={},
                                         )
                                     ],
                                     className="card-title",
                                 ),
-                                #     html.P(
-                                #         id="card_text_3",
-                                #         children=[
-                                #             html.A(
-                                #                 "Link to more information",
-                                #                 href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
-                                #             )
-                                #         ],
-                                #     ),
                             ]
                         )
                     ]
@@ -223,7 +215,6 @@ html_dropdown_country = (
                 value="Netherlands",
             ),
         ],
-        # className="mb-4",
     ),
 )
 
@@ -237,7 +228,6 @@ html_dropdown_foodcategory = (
                 value="Bread and cereals",
             ),
         ],
-        # className="mb-4",
     ),
 )
 
@@ -366,7 +356,10 @@ container = html.Div(
             dbc.Col(sidebar, width=3),
             dbc.Col(
                 [
-                    html.Center(html.H1("Inflation dashboard app (HICP index)")),
+                    html.Center(
+                        html.H1("Inflation dashboard app (HICP index)"),
+                        style={"margin-bottom": "20px", "margin-top": "20px"},
+                    ),
                     dbc.Row(
                         [
                             dbc.Col(
@@ -375,14 +368,17 @@ container = html.Div(
                                         [
                                             dbc.Col(
                                                 html_world_map,
-                                                width=6,
+                                                width=12,
                                             ),
                                             dbc.Col(
                                                 html_line_graph,
-                                                width=6,
+                                                width=12,
                                             ),
                                         ],
-                                        style={"margin-right": "20px"},
+                                        style={
+                                            "margin-right": "20px",
+                                            # "margin-bottom": "20px",
+                                        },
                                     ),
                                 ]
                             ),
@@ -438,7 +434,7 @@ def update_world_map(date, foodcategory):
         featureidkey="properties.ISO_A3",
         projection="natural earth",
         scope="europe",
-        labels={"Percentage change m/m-12": "Percentage change"},
+        # labels={"Percentage change m/m-12": "Percentage change"},
         color_continuous_scale=px.colors.sequential.Blues,
         # width=500, height=400
     )
