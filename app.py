@@ -11,11 +11,11 @@ external_stylesheets = [dbc.themes.BOOTSTRAP, dbc.themes.YETI]
 load_figure_template("YETI")
 
 # import the data
-# df = pd.read_csv(
-#     "https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false"
-# )
+df = pd.read_csv(
+     "https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false"
+)
 # df.to_csv("data.csv", index=False)
-df = pd.read_csv("data.csv", low_memory=False)
+# df = pd.read_csv("data.csv", low_memory=False)
 
 df = df[(df["indx"] == "HICP") & (df["unit"] == "PCH_M12")]
 df = df.rename(
