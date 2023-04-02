@@ -10,74 +10,79 @@ from dash_bootstrap_templates import load_figure_template
 external_stylesheets = [dbc.themes.BOOTSTRAP, dbc.themes.YETI]
 load_figure_template("YETI")
 
-# import the data
-df = pd.read_csv(
+
+def get_data(url):
+    # get data from api
+    df = pd.read_csv(url)
+
+    df = df[(df["indx"] == "HICP") & (df["unit"] == "PCH_M12")]
+    df = df.rename(
+        {"TIME_PERIOD": "period", "OBS_VALUE": "Percentage change m/m-12"}, axis=1
+    )
+    coicop_label = {
+        "Food": "CP011",
+        "Bread and cereals": "CP0111",
+        "Bread": "CP01113",
+        "Meat": "CP0112",
+        "Beef and veal": "CP01121",
+        "Pork": "CP01122",
+        "Lamb and goat": "CP01123",
+        "Poultry": "CP01124",
+        "Fish and seafood": "CP0113",
+        "Milk. Cheese and eggs": "CP0114",
+        "Fresh whole milk": "CP01141",
+        "Yogurt": "CP01144",
+        "Cheese and curd": "CP01145",
+        "Eggs": "CP01147",
+        "Oils and fats": "CP0115",
+        "Butter": "CP01151",
+        "Olive oil": "CP01153",
+        "Other dible oils": "CP01154",
+        "Fruit": "CP0116",
+        "Vegetables": "CP0117",
+        "Potatoes": "CP01174",
+        "Sugar": "CP01181",
+        "Coffee, tea and cocoa": "CP0121",
+        "Fruit and vegetables juices": "CP01223",
+        "Wine from grapes": "CP02121",
+        "Beer": "CP02123",
+    }
+    coicop_label = pd.DataFrame.from_dict(coicop_label, orient="index")
+    coicop_label = coicop_label.reset_index().rename(
+        {"index": "label", 0: "coicop"}, axis=1
+    )
+    df = df.merge(coicop_label, left_on="coicop", right_on="coicop", how="left")
+    df = df[df["label"].notnull()]
+    countries = [
+        {
+            "Country": country.name,
+            "alpha_2": country.alpha_2,
+            "alpha_3": country.alpha_3,
+        }
+        for country in pycountry.countries
+    ]
+    df.rename({"Country_name": "Country"}, axis=1)
+    countries = pd.DataFrame(countries)
+    df = df.merge(countries, left_on="geo", right_on="alpha_2", how="left")
+    df = df[
+        [
+            "period",
+            "indx",
+            "Percentage change m/m-12",
+            "coicop",
+            "Country",
+            "alpha_2",
+            "geo",
+            "alpha_3",
+            "label",
+        ]
+    ]
+    return df
+
+
+df = get_data(
     "https://ec.europa.eu/eurostat/databrowser-backend/api/extraction/1.0/LIVE/true/sdmx/csv/PRC_FSC_IDX?i&compressed=false"
 )
-# df.to_csv("data.csv", index=False)
-# df = pd.read_csv("data.csv", low_memory=False)
-
-df = df[(df["indx"] == "HICP") & (df["unit"] == "PCH_M12")]
-df = df.rename(
-    {"TIME_PERIOD": "period", "OBS_VALUE": "Percentage change m/m-12"}, axis=1
-)
-coicop_label = {
-    "Food": "CP011",
-    "Bread and cereals": "CP0111",
-    "Bread": "CP01113",
-    "Meat": "CP0112",
-    "Beef and veal": "CP01121",
-    "Pork": "CP01122",
-    "Lamb and goat": "CP01123",
-    "Poultry": "CP01124",
-    "Fish and seafood": "CP0113",
-    "Milk. Cheese and eggs": "CP0114",
-    "Fresh whole milk": "CP01141",
-    "Yogurt": "CP01144",
-    "Cheese and curd": "CP01145",
-    "Eggs": "CP01147",
-    "Oils and fats": "CP0115",
-    "Butter": "CP01151",
-    "Olive oil": "CP01153",
-    "Other dible oils": "CP01154",
-    "Fruit": "CP0116",
-    "Vegetables": "CP0117",
-    "Potatoes": "CP01174",
-    "Sugar": "CP01181",
-    "Coffee, tea and cocoa": "CP0121",
-    "Fruit and vegetables juices": "CP01223",
-    "Wine from grapes": "CP02121",
-    "Beer": "CP02123",
-}
-coicop_label = pd.DataFrame.from_dict(coicop_label, orient="index")
-coicop_label = coicop_label.reset_index().rename(
-    {"index": "label", 0: "coicop"}, axis=1
-)
-df = df.merge(coicop_label, left_on="coicop", right_on="coicop", how="left")
-df = df[df["label"].notnull()]
-countries = [
-    {"Country": country.name, "alpha_2": country.alpha_2, "alpha_3": country.alpha_3}
-    for country in pycountry.countries
-]
-df.rename({"Country_name": "Country"}, axis=1)
-countries = pd.DataFrame(countries)
-df = df.merge(countries, left_on="geo", right_on="alpha_2", how="left")
-df = df[
-    [
-        "period",
-        "indx",
-        "Percentage change m/m-12",
-        "coicop",
-        "Country",
-        "alpha_2",
-        "geo",
-        "alpha_3",
-        "label",
-    ]
-]
-df["pct_diff"] = df.groupby(["geo", "coicop"], as_index=True)[
-    "Percentage change m/m-12"
-].pct_change(periods=12)
 
 period = sorted(df["period"].unique())
 mask = df["period"] == period[-1]
@@ -118,69 +123,10 @@ SIDEBAR_STYLE = {
     "left": 0,
     "bottom": 0,
     "height": "100%",
-    # "width": "24rem",
     "padding": "2rem 1rem",
     "background-color": "#f8f9fa",
 }
 
-
-sidebar = html.Div(
-    [
-        html.H2("Filters"),
-        html.Hr(),
-        dbc.Nav(
-            [
-                dbc.Label("Date", id="slider_label"),
-                dcc.Slider(
-                    id="slider_year",
-                    min=years[0],
-                    max=years[-1],
-                    marks={int(year): str(year) for year in [years[0], years[-1]]},
-                    step=1 / 12,
-                    value=2022.25,
-                ),
-                html.Br(),
-                dbc.Label("Country"),
-                dcc.Dropdown(
-                    id="dropdown_country",
-                    options=[{"value": x, "label": x} for x in df["Country"].unique()],
-                    value="Netherlands",
-                ),
-                html.Br(),
-                dbc.Label("Food Category"),
-                dcc.Dropdown(
-                    id="dropdown_food_category",
-                    options=[{"value": x, "label": x} for x in df["label"].unique()],
-                    value="Bread and cereals",
-                ),
-                html.Br(),
-                dbc.Label("About this data set"),
-                dbc.Card(
-                    [
-                        dbc.CardBody(
-                            [
-                                html.H4(
-                                    id="card_title_3",
-                                    children=[
-                                        html.A(
-                                            "Link to more information",
-                                            href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
-                                            style={},
-                                        )
-                                    ],
-                                    className="card-title",
-                                ),
-                            ]
-                        )
-                    ]
-                ),
-            ],
-            vertical=True,
-            pills=True,
-        ),
-    ],
-    style=SIDEBAR_STYLE,
-)
 
 title = html.H2(
     "Food price monitoring tool - the harmonised index of consumer prices (HICP)",
@@ -202,34 +148,77 @@ html_slider = html.Div(
             step=1 / 12,
             value=2022.25,
         ),
+        html.Br(),
     ]
 )
 
-html_dropdown_country = (
-    html.Div(
-        [
-            dbc.Label("Country"),
-            dcc.Dropdown(
-                id="dropdown_country",
-                options=[{"value": x, "label": x} for x in df["Country"].unique()],
-                value="Netherlands",
-            ),
-        ],
-    ),
+html_dropdown_country = html.Div(
+    [
+        dbc.Label("Country"),
+        dcc.Dropdown(
+            id="dropdown_country",
+            options=[{"value": x, "label": x} for x in df["Country"].unique()],
+            value="Netherlands",
+        ),
+        html.Br(),
+    ],
 )
 
-html_dropdown_foodcategory = (
-    html.Div(
-        [
-            dbc.Label("Food Category"),
-            dcc.Dropdown(
-                id="dropdown_food_category",
-                options=[{"value": x, "label": x} for x in df["label"].unique()],
-                value="Bread and cereals",
-            ),
-        ],
-    ),
+html_dropdown_foodcategory = html.Div(
+    [
+        dbc.Label("Food Category"),
+        dcc.Dropdown(
+            id="dropdown_food_category",
+            options=[{"value": x, "label": x} for x in df["label"].unique()],
+            value="Bread and cereals",
+        ),
+        html.Br(),
+    ],
 )
+
+html_about = html.Div(
+    [
+        dbc.Label("About this data set"),
+        dbc.Card(
+            [
+                dbc.CardBody(
+                    [
+                        html.H4(
+                            id="card_title_3",
+                            children=[
+                                html.A(
+                                    "Link to more information",
+                                    href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
+                                    style={},
+                                )
+                            ],
+                            className="card-title",
+                        ),
+                    ]
+                ),
+            ]
+        ),
+    ]
+)
+
+sidebar = html.Div(
+    [
+        html.H2("Filters"),
+        html.Hr(),
+        dbc.Nav(
+            [
+                html_slider,
+                html_dropdown_country,
+                html_dropdown_foodcategory,
+                html_about,
+            ],
+            vertical=True,
+            pills=True,
+        ),
+    ],
+    style=SIDEBAR_STYLE,
+)
+
 
 countries = sorted(df["Country"].dropna().unique())
 
@@ -242,154 +231,39 @@ html_line_graph = html.Div(
     dcc.Graph(id="line"),
 )
 
-
-# container = dbc.Container(
-#     [
-#         dbc.Row(
-#             [
-#                 dbc.Col(
-#                     dbc.Card(
-#                         [
-#                             dbc.CardBody(
-#                                 [
-#                                     html.H4(
-#                                         id="card_title_1",
-#                                         children=[
-#                                             "HICP inflation rate - Overall index "
-#                                         ],
-#                                         className="card-title",
-#                                     ),
-#                                     html.P(
-#                                         id="card_text_1",
-#                                         # children=["text."],
-#                                     ),
-#                                 ]
-#                             )
-#                         ]
-#                     ),
-#                     md=6,
-#                     # style={"margin-bottom": "20px"},
-#                 ),
-#                 dbc.Col(
-#                     dbc.Card(
-#                         [
-#                             dbc.CardBody(
-#                                 [
-#                                     html.H4(
-#                                         id="card_title_2",
-#                                         children=[
-#                                             "HICP inflation rate - Overall index "
-#                                         ],
-#                                         className="card-title",
-#                                     ),
-#                                     html.P(
-#                                         id="card_text_2",
-#                                         # children=["text."],
-#                                     ),
-#                                 ]
-#                             )
-#                         ]
-#                     ),
-#                     md=6,
-#                     # style={"margin-bottom": "20px"},
-#                 ),
-#             ]
-#         ),
-#         dbc.Row(
-#             [
-#                 dbc.Col(
-#                     html_world_map,
-#                     width=6,
-#                 ),
-#                 dbc.Col(html_line_graph, width=6, style={"margin-bottom": "20px"}),
-#             ]
-#         ),
-#         dbc.Row(
-#             [
-#                 dbc.Col(html_slider, width=6, style={"margin-bottom": "20px"}),
-#                 dbc.Col(
-#                     html_dropdown_country, width=6, style={"margin-bottom": "20px"}
-#                 ),
-#                 # dbc.Col(html_line_graph, width=6, style={"margin-bottom": "20px"}),
-#             ]
-#         ),
-#         dbc.Row(
-#             [
-#                 dbc.Col(
-#                     dbc.Card(
-#                         [
-#                             dbc.CardBody(
-#                                 [
-#                                     html.H4(
-#                                         id="card_title_3",
-#                                         children=["About this dataset "],
-#                                         className="card-title",
-#                                     ),
-#                                     html.P(
-#                                         id="card_text_3",
-#                                         children=[
-#                                             html.A(
-#                                                 "Link to more information",
-#                                                 href="https://ec.europa.eu/eurostat/cache/metadata/en/prc_fsc_idx_esms.htm",
-#                                             )
-#                                         ],
-#                                     ),
-#                                 ]
-#                             )
-#                         ]
-#                     ),
-#                     md=6,
-#                     style={"margin-bottom": "20px"},
-#                 ),
-#                 dbc.Col(
-#                     html_dropdown_foodcategory, width=4, style={"margin-bottom": "20px"}
-#                 ),
-#             ]
-#         ),
-#     ]
-# )
-
-
-container = html.Div(
-    dbc.Row(
-        [
-            dbc.Col(sidebar, width=3),
-            dbc.Col(
-                [
-                    html.Center(
-                        html.H1("Inflation dashboard app (HICP index)"),
-                        style={"margin-bottom": "20px", "margin-top": "20px"},
-                    ),
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                [
-                                    dbc.Row(
-                                        [
-                                            dbc.Col(
-                                                html_world_map,
-                                                width=12,
-                                            ),
-                                            dbc.Col(
-                                                html_line_graph,
-                                                width=12,
-                                            ),
-                                        ],
-                                        style={
-                                            "margin-right": "20px",
-                                            # "margin-bottom": "20px",
-                                        },
-                                    ),
-                                ]
-                            ),
-                        ]
-                    ),
-                ]
-            ),
-        ]
-    )
+html_center = html.Div(
+    [
+        html.Center(
+            html.H1("Inflation dashboard app (HICP index)"),
+            style={"margin-bottom": "20px", "margin-top": "20px"},
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    html_world_map,
+                                    width=12,
+                                ),
+                                dbc.Col(
+                                    html_line_graph,
+                                    width=12,
+                                ),
+                            ],
+                            style={
+                                "margin-right": "20px",
+                            },
+                        ),
+                    ]
+                ),
+            ]
+        ),
+    ],
 )
-layout = html.Div([container])
+
+layout = html.Div(dbc.Row([dbc.Col(sidebar, width=3), dbc.Col(html_center, width=9)]))
 
 
 # Run Server
@@ -434,15 +308,9 @@ def update_world_map(date, foodcategory):
         featureidkey="properties.ISO_A3",
         projection="natural earth",
         scope="europe",
-        # labels={"Percentage change m/m-12": "Percentage change"},
         color_continuous_scale=px.colors.sequential.Blues,
         # width=500, height=400
     )
-    # fig_world_map.update_layout(
-    #     # title="HICP inflation rate",
-    #     margin=dict(l=10, r=0, t=20, b=0),
-    #     # paper_bgcolor="#d8e1ee",
-    # )
     fig_world_map.update_layout(
         autosize=False,
         margin=dict(l=0, r=0, b=0, t=0, pad=4, autoexpand=True),
@@ -474,21 +342,7 @@ def update_line_plot(country, food_label):
         markers=True,
         symbol="Country",
         #    width=500, height=400
-        # title= 'HICP inflation rate'
     )
-    # fig_line.update_layout(
-    #     # title="HICP inflation rate",
-    #     xaxis_title="Period",
-    #     legend=dict(
-    #         font=dict(
-    #             family="Arial",
-    #             size=10,
-    #             # color="black"
-    #         )
-    #     ),
-    #     margin=dict(l=10, r=0, t=20, b=0),
-    #     paper_bgcolor="#d8e1ee",
-    # )
 
     return fig_line
 
